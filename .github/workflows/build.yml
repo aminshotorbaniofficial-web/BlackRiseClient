@@ -42,4 +42,27 @@ jobs:
           go install -v github.com/sagernet/gomobile/cmd/gobind@$GM_VERSION
           export PATH="$PATH:$(go env GOPATH)/bin"
           export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/26.2.11394342"
-          go run ./cmd/internal/build_libbox
+          go run ./cmd/internal/build_libbox -target android
+          ls -la libbox*.aar
+          mkdir -p "$GITHUB_WORKSPACE/app/libs"
+          cp libbox.aar "$GITHUB_WORKSPACE/app/libs/libbox.aar"
+
+      - name: Upload libbox.aar (for local Android Studio builds)
+        uses: actions/upload-artifact@v4
+        with:
+          name: libbox-aar
+          path: app/libs/libbox.aar
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.5'
+
+      - name: Build Debug APK
+        run: gradle assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BlackRise-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
